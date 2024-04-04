@@ -1,11 +1,9 @@
 CREATE TABLE IF NOT EXISTS users (
     id UUID NOT NULL,
-    name VARCHAR NOT NULL,
-    last_name VARCHAR NOT NULL,
-    phone VARCHAR NOT NULL,
-    email VARCHAR NOT NULL,
-    country VARCHAR NOT NULL,
-    zip_code VARCHAR NOT NULL,
+    first_name VARCHAR(55) NOT NULL,
+    last_name VARCHAR(55) NOT NULL,
+    phone VARCHAR(15) NOT NULL,
+    email VARCHAR(55) NOT NULL,
     id_login_data UUID NOT NULL,
     PRIMARY KEY (id)
     CONSTRAINT fk_login_data
