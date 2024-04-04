@@ -2,19 +2,27 @@ package main
 
 import (
 	"fmt"
-
+	"log"
+	"login-jwt-example/pkg/api"
+	"login-jwt-example/pkg/db"
+	"net/http"
+	"os"
 )
 
 func main() {
-	//router := mux.NewRouter()
-
-	//router.HandleFunc("/login", login.LoginHandler).Methods("POST")
-	//router.HandleFunc("/protected", login.ProtectedHandler).Methods("GET")
-
-	fmt.Println("Starting the server")
-	//err := http.ListenAndServe("localhost:4000", router)
-	//if err != nil {
-	//	fmt.Println("Could not start the server", err)
-	//}
-	fmt.Println("Server started. Listenning on port 4000")
+	log.Print("server has started")
+    //start the db
+    pgdb, err := db.StartDB()
+    if err != nil {
+        log.Printf("error starting the database %v", err)
+    }
+    //get the router of the API by passing the db
+    router := api.StartAPI(pgdb)
+    //get the port from the environment variable
+    port := os.Getenv("PORT")
+    //pass the router and start listening with the server
+    err = http.ListenAndServe(fmt.Sprintf(":%s", port), router)
+    if err != nil {
+        log.Printf("error from router %v\n", err)
+    }
 }
