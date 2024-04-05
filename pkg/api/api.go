@@ -93,9 +93,21 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
         w.WriteHeader(http.StatusBadRequest)
         return
     }
+    
     hashedPass, err := bcrypt.GenerateFromPassword([]byte(req.LoginData.Password), bcrypt.DefaultCost)
     if err != nil {
-        panic(err)
+        res := &UserResponse{
+            Success: false,
+            Error: err.Error(),
+        }
+        err = json.NewEncoder(w).Encode(res)
+        //if there's an error with encoding handle it
+        if err != nil {
+            log.Printf("error sending response %v\n", err)
+        }
+        //return a bad request and exist the function
+        w.WriteHeader(http.StatusBadRequest)
+        return
     }
 
     //if we can get the db then

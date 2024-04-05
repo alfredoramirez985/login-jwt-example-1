@@ -1,4 +1,4 @@
-package login
+package api
 
 // LoginService to provide user login with JWT token support
 import (

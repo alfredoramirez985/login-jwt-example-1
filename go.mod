@@ -5,6 +5,7 @@ go 1.21.0
 require (
 	github.com/go-chi/chi/v5 v5.0.12 // indirect
 	github.com/go-pg/migrations/v8 v8.1.0 // indirect
+	github.com/go-pg/pg v8.0.7+incompatible
 	github.com/go-pg/pg/v10 v10.12.0 // indirect
 	github.com/go-pg/zerochecker v0.2.0 // indirect
 	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
