@@ -25,7 +25,7 @@ func StartDB() (*pg.DB, error) {
         opts = &pg.Options{
             //default port
             //depends on the db service from docker compose
-            Addr:     "db:5432",
+            Addr:     "192.168.16.2:5432",
             User:     "postgres",
             Password: "admin",
         }

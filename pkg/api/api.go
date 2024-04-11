@@ -36,11 +36,10 @@ func StartAPI(pgdb *pg.DB) *chi.Mux {
 }
 
 type CreateUserRequest struct {
-    ID        string `json:"id"`
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
 	Phone     string `json:"phone"`
-	Email     int32  `json:"email"`
+	Email     string  `json:"email"`
     LoginData *CreateLoginData `json:"login_data"`
 }
 

@@ -16,9 +16,12 @@ func GetLoginData(db *pg.DB, username string) (*LoginData, error) {
     loginData := &LoginData{}
 
     err := db.Model(loginData).
-        Relation("User").
-        Where("loginData.user_name = ?", username).
+        Where("user_name = ?", username).
         Select()
+    
+    if err == pg.ErrNoRows {
+        return nil, err
+    }
 
     return loginData, err
 }
