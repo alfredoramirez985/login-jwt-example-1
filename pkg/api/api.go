@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"log"
+	"login-jwt-example/pkg/api/login"
 	"login-jwt-example/pkg/db/models"
 	"net/http"
 
@@ -25,6 +26,11 @@ func StartAPI(pgdb *pg.DB) *chi.Mux {
     r.Route("/user", func(r chi.Router) {
         r.Post("/", CreateUser)
         //r.Get("/", getComments)
+    })
+
+    r.Route("/createtoken", func(r chi.Router) {
+        r.Post("/", api.LoginHandler)
+        r.Get("/", api.ProtectedHandler)
     })
 
     //test route to make sure everything works

@@ -3,7 +3,6 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"login-jwt-example/pkg/db/models"
 	"net/http"
 
@@ -22,62 +21,51 @@ type UserResponse struct {
 }
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	fmt.Printf("The request body is %v\n", r.Body)
-
-	var loginUser LoginUser
-	json.NewDecoder(r.Body).Decode(&loginUser)
-	fmt.Printf("The user request value %v", loginUser)
-
-	hashedPass, err := bcrypt.GenerateFromPassword([]byte(loginUser.Password), bcrypt.DefaultCost)
+    w.Header().Set("Content-Type", "application/json")
+    
+    var loginUser LoginUser
+    err := json.NewDecoder(r.Body).Decode(&loginUser)
     if err != nil {
-        res := &UserResponse{
-            Success: false,
-            Error: err.Error(),
-        }
-        err = json.NewEncoder(w).Encode(res)
-        //if there's an error with encoding handle it
-        if err != nil {
-            log.Printf("error sending response %v\n", err)
-        }
-        //return a bad request and exist the function
-        w.WriteHeader(http.StatusBadRequest)
+        handleError(w, http.StatusBadRequest, "Invalid request body")
         return
     }
 
-	//get the db from context
-	pgdb, ok := r.Context().Value("DB").(*pg.DB)
-
-	if !ok {
-        res := &UserResponse{
-            Success: false,
-            Error:   "could not get the DB from context",
-        }
-        err = json.NewEncoder(w).Encode(res)
-        //if there's an error with encoding handle it
-        if err != nil {
-            log.Printf("error sending response %v\n", err)
-        }
-        //return a bad request and exist the function
-        w.WriteHeader(http.StatusBadRequest)
+    // Get the database connection from the context
+    pgdb, ok := r.Context().Value("DB").(*pg.DB)
+    if !ok {
+        handleError(w, http.StatusInternalServerError, "Failed to get database connection from context")
         return
     }
 
-	loginData, err := models.GetLoginData(pgdb, loginUser.Username)
+    // Get login data from the database
+    loginData, err := models.GetLoginData(pgdb, loginUser.Username)
+    if err != nil {
+        handleError(w, http.StatusInternalServerError, "Failed to retrieve user data")
+        return
+    }
 
-	if loginUser.Username == loginData.UserName && string(hashedPass) == loginData.Password {
-		tokenString, err := CreateToken(loginUser.Username)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Errorf("No username found")
-		}
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprint(w, tokenString)
-		return
-	} else {
-		w.WriteHeader(http.StatusUnauthorized)
-		fmt.Fprint(w, "Invalid credentials")
-	}
+    // Compare the provided password with the hashed password from the database
+    err = bcrypt.CompareHashAndPassword([]byte(loginData.Password), []byte(loginUser.Password))
+    if err != nil {
+        handleError(w, http.StatusUnauthorized, "Invalid credentials")
+        return
+    }
+
+    // If passwords match, generate and send token
+    tokenString, err := CreateToken(loginUser.Username)
+    if err != nil {
+        handleError(w, http.StatusInternalServerError, "Failed to generate token")
+        return
+    }
+
+    // Respond with token
+    w.WriteHeader(http.StatusOK)
+    fmt.Fprint(w, tokenString)
+}
+
+func handleError(w http.ResponseWriter, statusCode int, message string) {
+    w.WriteHeader(statusCode)
+    fmt.Fprintf(w, `{"error": "%s"}`, message)
 }
 
 func ProtectedHandler(w http.ResponseWriter, r *http.Request) {
@@ -90,7 +78,7 @@ func ProtectedHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	tokenString = tokenString[len("Bearer "):]
 
-	err := verifyToken(tokenString)
+	err := VerifyToken(tokenString)
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		fmt.Fprint(w, "Invalid token")

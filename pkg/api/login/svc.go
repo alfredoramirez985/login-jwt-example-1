@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	secretKey = []byte("secret -key")
+	secretKey = []byte("secret-key")
 )
 
 func CreateToken(username string) (string, error) {
@@ -25,7 +25,7 @@ func CreateToken(username string) (string, error) {
 	return tokenString, nil
 }
 
-func verifyToken(tokenString string) error {
+func VerifyToken(tokenString string) error {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return secretKey, nil
 	})
